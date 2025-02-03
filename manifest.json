@@ -1,0 +1,15 @@
+{
+    "manifest_version": 3,
+    "name": "Daily Quotes",
+    "description": "Daily quote.",
+    "version": "1.0",
+    "permissions": ["storage"],
+    "host_permissions": ["https://quotes-api-self.vercel.app/"],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "background": {
+      "service_worker": "background.js"
+    }
+  }
+  

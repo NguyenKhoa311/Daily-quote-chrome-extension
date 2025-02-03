@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            width: 300px;
+            min-height: 200px;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .quote-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            position: relative;
+            min-height: 100px;
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .quote-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            transition: opacity 0.3s;
+        }
+
+        .quote-author {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: right;
+            font-style: italic;
+            transition: opacity 0.3s;
+        }
+
+        .refresh-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .refresh-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .date {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading .quote-text,
+        .loading .quote-author {
+            opacity: 0.3;
+        }
+
+        .loading .loading-spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Shimmer effect for initial loading */
+        .shimmer {
+            background: #f6f7f8;
+            background-image: linear-gradient(
+                to right,
+                #f6f7f8 0%,
+                #edeef1 20%,
+                #f6f7f8 40%,
+                #f6f7f8 100%
+            );
+            background-repeat: no-repeat;
+            background-size: 800px 104px;
+            animation: shimmer 1.5s linear infinite;
+        }
+
+        .shimmer-text {
+            height: 16px;
+            margin-bottom: 8px;
+            border-radius: 2px;
+        }
+
+        .shimmer-author {
+            height: 14px;
+            width: 60%;
+            margin-left: auto;
+            border-radius: 2px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -468px 0;
+            }
+            100% {
+                background-position: 468px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="date" id="current-date"></div>
+        <div class="quote-box">
+            <div class="loading-spinner"></div>
+            <div id="quote-content">
+                <p class="quote-text" id="quote-text"></p>
+                <p class="quote-author" id="quote-author"></p>
+            </div>
+            <div id="shimmer-content">
+                <div class="shimmer shimmer-text"></div>
+                <div class="shimmer shimmer-text"></div>
+                <div class="shimmer shimmer-author"></div>
+            </div>
+        </div>
+        <button class="refresh-btn" id="refresh-btn">Another quote</button>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
