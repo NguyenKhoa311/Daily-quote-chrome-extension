@@ -4,9 +4,19 @@
     "description": "Daily quote.",
     "version": "1.0",
     "permissions": ["storage"],
+    "icons": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
     "host_permissions": ["https://quotes-api-self.vercel.app/"],
     "action": {
-      "default_popup": "popup.html"
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+      }
     },
     "background": {
       "service_worker": "background.js"
