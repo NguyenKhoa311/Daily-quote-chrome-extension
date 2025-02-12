@@ -13,6 +13,7 @@
         }
 
         .container {
+            gap: 5px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -20,16 +21,76 @@
             height: 100%;
         }
 
+        .mood-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .mood-title {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .mood-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .mood-button:hover {
+            transform: scale(1.2);
+            background-color: #f0f0f0;
+        }
+
+        .mood-button {
+            position: relative;
+        }
+
+        .mood-button:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
         .quote-box {
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             margin-bottom: 15px;
             position: relative;
             min-height: 100px;
             width: 100%;
             max-width: 260px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
         }
 
         .quote-text {
@@ -38,7 +99,7 @@
             color: #2c3e50;
             margin-bottom: 10px;
             text-align: center;
-            transition: opacity 0.3s;
+            transition: all 0.3s ease;
         }
 
         .quote-author {
@@ -46,7 +107,7 @@
             color: #7f8c8d;
             text-align: right;
             font-style: italic;
-            transition: opacity 0.3s;
+            transition: all 0.3s ease;
         }
 
         .refresh-btn {
@@ -56,27 +117,19 @@
             padding: 8px 16px;
             border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            position: relative;
+            transition: all 0.3s ease;
         }
 
         .refresh-btn:hover {
             background-color: #2980b9;
         }
 
-        .refresh-btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
+        .selected-mood {
+            background-color: #e8f4fd;
+            transform: scale(1.2);
         }
 
-        .date {
-            font-size: 12px;
-            color: #95a5a6;
-            margin-bottom: 15px;
-        }
-
-        /* Loading Spinner */
+        /* Loading spinner styles */
         .loading-spinner {
             display: none;
             position: absolute;
@@ -100,12 +153,7 @@
             display: block;
         }
 
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* Shimmer effect for initial loading */
+        /* Shimmer effect */
         .shimmer {
             background: #f6f7f8;
             background-image: linear-gradient(
@@ -133,26 +181,100 @@
             border-radius: 2px;
         }
 
+        /* Animation keyframes */
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
         @keyframes shimmer {
-            0% {
-                background-position: -468px 0;
+            0% { background-position: -468px 0; }
+            100% { background-position: 468px 0; }
+        }
+
+        /* Snowflakes */
+        .snowflakes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: snowfall linear infinite;
+        }
+
+        @keyframes snowfall {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(350px) rotate(360deg); }
+        }
+
+        /* Quote animations */
+        .new-quote {
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
             }
-            100% {
-                background-position: 468px 0;
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .date {
+            font-size: 14px;
+            color: #95a5a6;
+            margin-bottom: 15px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
     </style>
 </head>
 <body>
+    <div class="snowflakes" id="snowflakes"></div>
     <div class="container">
         <div class="date" id="current-date"></div>
+        <div class="mood-section">
+            <div class="mood-title">How was your day?</div>
+            <div class="mood-grid">
+                <button class="mood-button" data-mood="happy" title="Happy">😊</button>
+                <button class="mood-button" data-mood="sad" title="Sad">😔</button>
+                <button class="mood-button" data-mood="angry" title="Angry">😡</button>
+                <button class="mood-button" data-mood="tired" title="Tired">😩</button>
+                <button class="mood-button" data-mood="excited" title="Excited">🤩</button>
+            </div>
+        </div>
         <div class="quote-box">
             <div class="loading-spinner"></div>
             <div id="quote-content">
                 <p class="quote-text" id="quote-text"></p>
                 <p class="quote-author" id="quote-author"></p>
             </div>
-            <div id="shimmer-content">
+            <div id="shimmer-content" style="display: none;">
                 <div class="shimmer shimmer-text"></div>
                 <div class="shimmer shimmer-text"></div>
                 <div class="shimmer shimmer-author"></div>
@@ -161,6 +283,6 @@
         <button class="refresh-btn" id="refresh-btn">Another quote</button>
     </div>
 
-    <script src="popup.js"></script>
+    <script src = "popup.js" type="module"></script>
 </body>
 </html>
