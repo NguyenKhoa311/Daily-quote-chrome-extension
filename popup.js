@@ -1,48 +1,22 @@
 import { getRandomQuote } from './quotes/index.js';
+import { ThemeManager } from './theme-manager.js';
 
 document.addEventListener("DOMContentLoaded", function () {
+    const themeManager = new ThemeManager();
     const quoteText = document.getElementById("quote-text");
     const quoteAuthor = document.getElementById("quote-author");
     const refreshBtn = document.getElementById("refresh-btn");
     const quoteBox = document.querySelector('.quote-box');
     const quoteContent = document.getElementById('quote-content');
     const shimmerContent = document.getElementById('shimmer-content');
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const viewFavoritesBtn = document.getElementById('view-favorites-btn');
+    const favoritesModal = document.getElementById('favorites-modal');
+    const closeModalBtn = document.querySelector('.close');
 
     let isFirstTimeToday = true;
     let currentMood = null;
-
-    function createSnowflakes() {
-        const container = document.getElementById('snowflakes');
-        const snowflakeCount = 50;
-
-        for (let i = 0; i < snowflakeCount; i++) {
-            createOneSnowflake();
-        }
-    }
-
-    function createOneSnowflake() {
-        const container = document.getElementById('snowflakes');
-        const snowflake = document.createElement('div');
-        snowflake.className = 'snowflake';
-
-        const startPosition = Math.random() * 100;
-        const size = Math.random() * 4 + 2;
-        const animationDuration = Math.random() * 3 + 2;
-        const opacity = Math.random() * 0.6 + 0.4;
-
-        snowflake.style.left = `${startPosition}%`;
-        snowflake.style.width = `${size}px`;
-        snowflake.style.height = `${size}px`;
-        snowflake.style.opacity = opacity;
-        snowflake.style.animationDuration = `${animationDuration}s`;
-
-        container.appendChild(snowflake);
-
-        snowflake.addEventListener('animationend', () => {
-            snowflake.remove();
-            createOneSnowflake();
-        });
-    }
+    let favoriteQuotes = [];
 
     function showLoading() {
         if (!isFirstTimeToday) {
@@ -106,6 +80,107 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 500);
     }
 
+    // handle favorite button
+    function loadFavoriteQuotes() {
+        if (typeof chrome !== "undefined" && chrome.storage?.local) {
+            chrome.storage.local.get("favoriteQuotes", function(result) {
+                if (result.favoriteQuotes) {
+                    favoriteQuotes = result.favoriteQuotes;
+                    updateFavoriteButtonUI();
+                }
+            });
+        }
+    }
+
+    function isCurrentQuoteFavorited() {
+        return favoriteQuotes.some(q => 
+            q.quote === quoteText.textContent && 
+            q.author === quoteAuthor.textContent.replace('- ', '')
+        );
+    }
+
+    function updateFavoriteButtonUI() {
+        if (isCurrentQuoteFavorited()) {
+            favoriteBtn.innerHTML = '♥';
+            favoriteBtn.classList.add('active');
+        } else {
+            favoriteBtn.innerHTML = '♡';
+            favoriteBtn.classList.remove('active');
+        }
+    }
+
+    function toggleFavorite() {
+        const currentQuote = {
+            quote: quoteText.textContent,
+            author: quoteAuthor.textContent.replace('- ', ''),
+            timestamp: new Date().getTime(),
+            mood: currentMood
+        };
+
+        const index = favoriteQuotes.findIndex(q => 
+            q.quote === currentQuote.quote && 
+            q.author === currentQuote.author
+        );
+
+        if (index === -1) {
+            favoriteQuotes.push(currentQuote);
+        } else {
+            favoriteQuotes.splice(index, 1);
+        }
+
+        // Lưu vào storage
+        if (typeof chrome !== "undefined" && chrome.storage?.local) {
+            chrome.storage.local.set({ favoriteQuotes: favoriteQuotes });
+        }
+
+        updateFavoriteButtonUI();
+    }
+
+    function showFavorites() {
+        const favoritesList = document.getElementById('favorites-list');
+        favoritesList.innerHTML = '';
+
+        if (favoriteQuotes.length === 0) {
+            favoritesList.innerHTML = '<p style="text-align: center; color: #95a5a6;">No favorite quotes yet.</p>';
+        } else {
+            favoriteQuotes
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .forEach(quote => {
+                    const quoteElement = document.createElement('div');
+                    quoteElement.className = 'favorite-quote';
+                    quoteElement.innerHTML = `
+                        <button class="remove-favorite">x</button>
+                        <p class="quote-text">${quote.quote}</p>
+                        <p class="quote-author">- ${quote.author}</p>
+                    `;
+
+                    quoteElement.querySelector('.remove-favorite').addEventListener('click', () => {
+                        const index = favoriteQuotes.findIndex(q => 
+                            q.quote === quote.quote && 
+                            q.author === quote.author
+                        );
+                        
+                        if (index !== -1) {
+                            favoriteQuotes.splice(index, 1);
+                            if (typeof chrome !== "undefined" && chrome.storage?.local) {
+                                chrome.storage.local.set({ favoriteQuotes: favoriteQuotes });
+                            }
+                            quoteElement.remove();
+                            updateFavoriteButtonUI();
+
+                            if (favoriteQuotes.length === 0) {
+                                favoritesList.innerHTML = '<p style="text-align: center; color: #95a5a6;">No favorite quotes yet.</p>';
+                            }
+                        }
+                    });
+
+                    favoritesList.appendChild(quoteElement);
+                });
+        }
+
+        favoritesModal.style.display = 'block';
+    }
+
     function fetchQuote() {
         if (isFirstTimeToday) {
             // Nếu là lần đầu mở trong ngày, chỉ hiện câu hỏi
@@ -114,18 +189,6 @@ document.addEventListener("DOMContentLoaded", function () {
             // Nếu không phải lần đầu và đã có mood, hiện quote tương ứng
             updateMoodQuote(currentMood);
         }
-    }
-
-    function setMockQuote(quote, author) {
-        const now = new Date();
-        const mockData = {
-            quote: quote,
-            author: author,
-            timestamp: now.getTime(),
-            date: now.toDateString(),
-            isFirstTimeToday: isFirstTimeToday
-        };
-        updateUI(mockData);
     }
 
     function updateUI(quoteData) {
@@ -146,7 +209,23 @@ document.addEventListener("DOMContentLoaded", function () {
         if (quoteData.hasOwnProperty('isFirstTimeToday')) {
             isFirstTimeToday = quoteData.isFirstTimeToday;
         }
+
+         // Update favorite button status
+         updateFavoriteButtonUI();
     }
+
+     // Thêm event listeners cho tính năng favorite
+     favoriteBtn.addEventListener('click', toggleFavorite);
+     viewFavoritesBtn.addEventListener('click', showFavorites);
+     closeModalBtn.addEventListener('click', () => {
+         favoritesModal.style.display = 'none';
+     });
+ 
+     window.addEventListener('click', (event) => {
+         if (event.target === favoritesModal) {
+             favoritesModal.style.display = 'none';
+         }
+     });
 
     function updateDate() {
         const dateElement = document.getElementById('current-date');
@@ -218,5 +297,5 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeMoodButtons();
     updateDate();
     checkQuoteStorage();
-    createSnowflakes();
+    loadFavoriteQuotes();
 });

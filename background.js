@@ -13,6 +13,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 console.error("Lỗi khi lấy quote:", error);
                 sendResponse({ error: "Lỗi kết nối API" });
             });
-        return true; // Để đảm bảo sendResponse hoạt động bất đồng bộ
+        return true;
     }
 });

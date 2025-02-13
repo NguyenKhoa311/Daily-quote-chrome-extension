@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Daily Quotes",
-    "description": "Daily quote.",
+    "name": "Daily Quote",
+    "description": "Daily quote for Hinh",
     "version": "1.0",
     "permissions": ["storage"],
     "icons": {
@@ -9,7 +9,6 @@
       "48": "icon48.png",
       "128": "icon128.png"
     },
-    "host_permissions": ["https://quotes-api-self.vercel.app/"],
     "action": {
       "default_popup": "popup.html",
       "default_icon": {
