@@ -3,7 +3,7 @@
     "name": "Daily Quote",
     "description": "Daily quote for Hinh",
     "version": "1.0",
-    "permissions": ["storage"],
+    "permissions": ["storage", "notifications", "alarms"],
     "icons": {
       "16": "icon16.png",
       "48": "icon48.png",
