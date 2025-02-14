@@ -1,5 +1,6 @@
 import { getRandomQuote } from './quotes/index.js';
 import { ThemeManager } from './theme-manager.js';
+import { moodQuestions } from './questions.js';
 
 document.addEventListener("DOMContentLoaded", function () {
     const themeManager = new ThemeManager();
@@ -13,7 +14,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const viewFavoritesBtn = document.getElementById('view-favorites-btn');
     const favoritesModal = document.getElementById('favorites-modal');
     const closeModalBtn = document.querySelector('.close');
+    const spotifyWidget = document.getElementById("spotifyWidget");
+    const switchButton = document.getElementById("switchView");
+    const moodQuoteSection = document.getElementById("moodQuoteSection");
 
+    let isSpotifyView = false;
     let isFirstTimeToday = true;
     let currentMood = null;
     let favoriteQuotes = [];
@@ -70,7 +75,6 @@ document.addEventListener("DOMContentLoaded", function () {
             
             updateUI(data);
     
-            // Lưu toàn bộ thông tin vào storage
             if (typeof chrome !== "undefined" && chrome.storage?.local) {
                 chrome.storage.local.set({ quoteData: data });
             }
@@ -128,7 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
             favoriteQuotes.splice(index, 1);
         }
 
-        // Lưu vào storage
         if (typeof chrome !== "undefined" && chrome.storage?.local) {
             chrome.storage.local.set({ favoriteQuotes: favoriteQuotes });
         }
@@ -183,10 +186,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function fetchQuote() {
         if (isFirstTimeToday) {
-            // Nếu là lần đầu mở trong ngày, chỉ hiện câu hỏi
+            // If it's the first time today, show loading
             hideQuoteBox();
         } else if (currentMood) {
-            // Nếu không phải lần đầu và đã có mood, hiện quote tương ứng
+            // Else, update quote based on mood
             updateMoodQuote(currentMood);
         }
     }
@@ -214,7 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
          updateFavoriteButtonUI();
     }
 
-     // Thêm event listeners cho tính năng favorite
+    // Add event listeners for favorite button and modal
      favoriteBtn.addEventListener('click', toggleFavorite);
      viewFavoritesBtn.addEventListener('click', showFavorites);
      closeModalBtn.addEventListener('click', () => {
@@ -241,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
                 button.classList.add('selected-mood');
                 currentMood = button.dataset.mood;
-                isFirstTimeToday = false; // Sau khi chọn mood, không còn là lần đầu nữa
+                isFirstTimeToday = false; 
                 updateMoodQuote(currentMood);
             });
         });
@@ -252,15 +255,12 @@ document.addEventListener("DOMContentLoaded", function () {
             chrome.storage.local.get("quoteData", function (result) {
                 const now = new Date();
                 if (result.quoteData && result.quoteData.date === now.toDateString()) {
-                    // Nếu đã có dữ liệu của ngày hôm nay
                     isFirstTimeToday = false;
                     currentMood = result.quoteData.mood;
                     
-                    // Hiển thị quote đã lưu
                     showQuoteBox();
                     updateUI(result.quoteData);
                     
-                    // Khôi phục trạng thái mood button
                     if (currentMood) {
                         document.querySelectorAll('.mood-button').forEach(btn => {
                             btn.classList.remove('selected-mood');
@@ -273,7 +273,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     
                     hideShimmer();
                 } else {
-                    // Nếu chưa có dữ liệu của ngày hôm nay
                     isFirstTimeToday = true;
                     currentMood = null;
                     hideQuoteBox();
@@ -293,9 +292,102 @@ document.addEventListener("DOMContentLoaded", function () {
             fetchQuote();
         }
     });
+
+    function initSpotifyWidget() {
+        const spotifyPlayer = document.getElementById('spotifyPlayer');
+        const spotifyLoader = document.getElementById('spotifyLoader');
     
+        // Load Spotify widget
+        setTimeout(() => {
+            spotifyPlayer.src = "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M";
+            
+            spotifyPlayer.onload = () => {
+                spotifyLoader.style.display = 'none';
+                spotifyPlayer.style.opacity = '1';
+            };
+        }, 100);
+    }
+    
+    // Add toggle view function
+    function toggleView() {
+        isSpotifyView = !isSpotifyView;
+        if (isSpotifyView) {
+            moodQuoteSection.style.display = 'none';
+            spotifyWidget.style.display = 'block';
+            switchButton.innerHTML = '🏠 Back';
+            switchButton.classList.add('spotify-active');
+
+            if (!spotifyWidget.dataset.loaded) {
+                initSpotifyWidget();
+                spotifyWidget.dataset.loaded = 'true';
+            }
+        } else {
+            moodQuoteSection.style.display = 'block';
+            spotifyWidget.style.display = 'none';
+            switchButton.innerHTML = '🎵 Spotify';
+            switchButton.classList.remove('spotify-active');
+        }
+    }
+
+    function getRandomQuestion() {
+        const index = Math.floor(Math.random() * moodQuestions.length);
+        return moodQuestions[index];
+    }
+    
+    function updateMoodQuestion() {
+        const moodTitle = document.querySelector('.mood-title');
+        
+        // Check chrome storage for today question
+        if (typeof chrome !== "undefined" && chrome.storage?.local) {
+            chrome.storage.local.get(['lastQuestionDate', 'currentQuestion'], (result) => {
+                const today = new Date().toDateString();
+                
+                if (result.lastQuestionDate !== today) {
+                    // If it's a new day, get a new question
+                    const newQuestion = getRandomQuestion();
+                    moodTitle.textContent = newQuestion;
+                    
+                    // Save new question and today's date
+                    chrome.storage.local.set({
+                        lastQuestionDate: today,
+                        currentQuestion: newQuestion
+                    });
+                } else if (result.currentQuestion) {
+                    // If it's the same day, use the saved question
+                    moodTitle.textContent = result.currentQuestion;
+                } else {
+                    // If there's no saved question, use a random one
+                    moodTitle.textContent = moodQuestions[0];
+                }
+            });
+        } else {
+            // Fallback if chrome storage is not available
+            moodTitle.textContent = getRandomQuestion();
+        }
+    }
+
+    // Add event listener for switch button
+    switchButton.addEventListener('click', toggleView);
+
+    // Initialize view
+    spotifyWidget.style.display = 'none';
+
     initializeMoodButtons();
     updateDate();
-    checkQuoteStorage();
-    loadFavoriteQuotes();
+    updateMoodQuestion();
+    
+    // Lazy load few seconds after DOM content loaded
+    setTimeout(() => {
+        loadFavoriteQuotes();
+        checkQuoteStorage();
+        
+        // Preload Spotify widget in the background
+        if (typeof chrome !== "undefined" && chrome.storage?.local) {
+            chrome.storage.local.get("preferSpotify", (result) => {
+                if (result.preferSpotify) {
+                    initSpotifyWidget();
+                }
+            });
+        }
+    }, 0);
 });
