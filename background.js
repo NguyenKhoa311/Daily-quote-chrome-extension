@@ -55,59 +55,82 @@ function getNextAlarmTime() {
 
 // Send a daily notification with a random message
 function sendDailyNotification() {
-    const messages = [
-        "Wishing you a day as amazing as you are! 🌟",
-        "Keep shining, you're doing great! ✨",
-        "No matter what, always believe in yourself! 💖",
-        "You're capable of amazing things! 💪",
-        "Today is a fresh start, make it wonderful! 🌈",
-        "Smile, because you’re the reason someone’s day is brighter! 😊",
-        "Dream big, work hard, and make it happen! 🚀",
-        "You’ve got this! Never forget how incredible you are! 💕",
-        "Wishing you a day as beautiful as your smile! 😊",
-        "You are stronger than you think—keep going! 💪",
-        "No matter what happens today, you’ve got this! 🌟",
-        "Believe in yourself the way I believe in you! 💖",
-        "Every challenge is an opportunity to grow. You’re doing great! 🌱",
-        "You light up every room you walk into! ✨",
-        "Keep chasing your dreams, and never stop believing in yourself! 🚀",
-        "One small positive thought in the morning can change your whole day! 🌞",
-        "You are capable of amazing things—never doubt that! 💕",
-        "The world is lucky to have someone like you in it! 🌎",
-        "Your kindness and strength inspire me every day! 💖",
-        "Don’t forget to take a deep breath and enjoy the moment! 🌿",
-        "Everything you need to succeed is already inside you! 🌟",
-        "You bring so much joy wherever you go! Keep being you! 😍",
-        "Today is a fresh start—make the most of it! 🌈",
-        "Even on tough days, remember how incredible you are! 💖",
-        "You are loved, appreciated, and stronger than you know! 💫",
-        "No storm lasts forever—keep shining!  ☔️🌈",
-        "Your dreams are valid, and I know you’ll achieve them! 🚀",
-        "Keep smiling because your happiness is contagious! 😊",
-        "You make the world a better place just by being in it! 🌎💖",
-        "Success is built on small daily steps—keep going! 👣",
-        "The universe has amazing things in store for you! ✨",
-        "You’re already enough, just as you are! 💖",
-        "Your hard work will pay off—just wait and see! 💪",
-        "The best is yet to come, so keep your head up! 🌟",
-        "I hope today brings you as much happiness as you bring to others! 😊",
-        "Never forget: You are brave, strong, and absolutely amazing! 💕",
-        "Even on cloudy days, your light shines through! ☁️✨",
-        "You are someone’s reason to smile today—never forget that! 😊"
-    ];
-    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    let notificationTitle = "From Tangerine 🍊";
+    let notificationMessage;
+
+    if (isValentinesDay()) {
+        notificationTitle = specialMessages.valentines.title;
+        notificationMessage = specialMessages.valentines.message;
+    } else {
+        const messages = [
+            "Wishing you a day as amazing as you are! 🌟",
+            "Keep shining, you're doing great! ✨",
+            "No matter what, always believe in yourself! 💖",
+            "You're capable of amazing things! 💪",
+            "Today is a fresh start, make it wonderful! 🌈",
+            "Smile, because you’re the reason someone’s day is brighter! 😊",
+            "Dream big, work hard, and make it happen! 🚀",
+            "You’ve got this! Never forget how incredible you are! 💕",
+            "Wishing you a day as beautiful as your smile! 😊",
+            "You are stronger than you think—keep going! 💪",
+            "No matter what happens today, you’ve got this! 🌟",
+            "Believe in yourself the way I believe in you! 💖",
+            "Every challenge is an opportunity to grow. You’re doing great! 🌱",
+            "You light up every room you walk into! ✨",
+            "Keep chasing your dreams, and never stop believing in yourself! 🚀",
+            "One small positive thought in the morning can change your whole day! 🌞",
+            "You are capable of amazing things—never doubt that! 💕",
+            "The world is lucky to have someone like you in it! 🌎",
+            "Your kindness and strength inspire me every day! 💖",
+            "Don’t forget to take a deep breath and enjoy the moment! 🌿",
+            "Everything you need to succeed is already inside you! 🌟",
+            "You bring so much joy wherever you go! Keep being you! 😍",
+            "Today is a fresh start—make the most of it! 🌈",
+            "Even on tough days, remember how incredible you are! 💖",
+            "You are loved, appreciated, and stronger than you know! 💫",
+            "No storm lasts forever—keep shining!  ☔️🌈",
+            "Your dreams are valid, and I know you’ll achieve them! 🚀",
+            "Keep smiling because your happiness is contagious! 😊",
+            "You make the world a better place just by being in it! 🌎💖",
+            "Success is built on small daily steps—keep going! 👣",
+            "The universe has amazing things in store for you! ✨",
+            "You’re already enough, just as you are! 💖",
+            "Your hard work will pay off—just wait and see! 💪",
+            "The best is yet to come, so keep your head up! 🌟",
+            "I hope today brings you as much happiness as you bring to others! 😊",
+            "Never forget: You are brave, strong, and absolutely amazing! 💕",
+            "Even on cloudy days, your light shines through! ☁️✨",
+            "You are someone’s reason to smile today—never forget that! 😊"
+        ];
+        notificationMessage = messages[Math.floor(Math.random() * messages.length)];
+    }
 
     chrome.notifications.create({
         type: "basic",
         iconUrl: "icon16.png",
-        title: "From Tangerine 🍊",
-        message: randomMessage,
-        requireInteraction: true
+        title: notificationTitle,
+        message: notificationMessage,
+        requireInteraction: true,
+        priority: isValentinesDay() ? 2 : 0
     });
 
-    chrome.storage.local.set({ lastNotificationDate: new Date().toDateString() });
+    chrome.storage.local.set({ 
+        lastNotificationDate: new Date().toDateString(),
+        lastMessage: notificationMessage // Lưu lại message để có thể hiển thị lại nếu cần
+    });
 }
 
+function isValentinesDay() {
+    const today = new Date();
+    return today.getMonth() === 1 && today.getDate() === 14;
+}
+
+const specialMessages = {
+    valentines: {
+        title: "To Hinh",
+        message: "Valentine’s Day is all about love and appreciation, so I just wanted to take a moment to say—you are truly special to me. 💖 Hope today brings you joy, laughter, and maybe even a little surprise! 🌹 (From Tangerine)"
+    }
+};
 
 // Check when the extension is started
 chrome.runtime.onStartup.addListener(() => {

@@ -294,18 +294,184 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function initSpotifyWidget() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Top Hits Elements
         const spotifyPlayer = document.getElementById('spotifyPlayer');
         const spotifyLoader = document.getElementById('spotifyLoader');
+        
+        // Custom Playlist Elements
+        const customSpotifyPlayer = document.getElementById('customSpotifyPlayer');
+        const customSpotifyLoader = document.getElementById('customSpotifyLoader');
+        const playlistInput = document.getElementById('playlistInput');
+        const updatePlaylistBtn = document.getElementById('updatePlaylist');
+        const removePlaylistBtn = document.getElementById('removePlaylist');
+        const customPlaylistContainer = document.querySelector('.custom-playlist-container');
     
-        // Load Spotify widget
-        setTimeout(() => {
+        // Tab Switching
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}Tab`).classList.add('active');
+            });
+        });
+    
+        // Load Top Hits
+        function loadTopHits() {
+            spotifyLoader.style.display = 'block';
+            spotifyPlayer.style.opacity = '0';
+            
             spotifyPlayer.src = "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M";
             
             spotifyPlayer.onload = () => {
                 spotifyLoader.style.display = 'none';
                 spotifyPlayer.style.opacity = '1';
             };
-        }, 100);
+        }
+
+        function initializeCustomPlaylist() {
+            const playerContainer = document.querySelector('.player-container');
+            if (playerContainer) {
+                // Set initial state
+                playerContainer.style.display = 'none';
+                playerContainer.style.opacity = '0';
+                playerContainer.style.height = '0';
+            }
+            
+            customPlaylistContainer.style.maxHeight = '120px';
+        }
+    
+        // Load Custom Playlist
+        function loadCustomPlaylist(playlistId) {
+            customSpotifyLoader.style.display = 'block';
+            customSpotifyPlayer.style.opacity = '0';
+
+            customPlaylistContainer.classList.remove('has-playlist');
+            
+            // Short delay to ensure animation plays
+            setTimeout(() => {
+                const playerContainer = document.querySelector('.player-container');
+                if (playerContainer) {
+                    playerContainer.style.display = 'block';
+                }
+                customSpotifyPlayer.src = `https://open.spotify.com/embed/playlist/${playlistId}`;
+                
+                customSpotifyPlayer.onload = () => {
+                    customSpotifyLoader.style.display = 'none';
+                    customPlaylistContainer.classList.add('has-playlist');
+                    customSpotifyPlayer.style.opacity = '1';
+                    customSpotifyPlayer.style.height = '380px';
+
+
+                if (playerContainer) {
+                    playerContainer.style.opacity = '1';
+                    playerContainer.style.height = '380px';
+                }
+                
+                // Reset container height
+                customPlaylistContainer.style.maxHeight = 'none';
+                };
+            }, 300);
+        }
+    
+        // Extract Playlist ID from URL or ID
+        function extractPlaylistId(input) {
+            if (input.includes('spotify.com/playlist/')) {
+                const match = input.match(/playlist\/([a-zA-Z0-9]+)/);
+                return match ? match[1] : null;
+            }
+            if (/^[a-zA-Z0-9]+$/.test(input)) {
+                return input;
+            }
+            return null;
+        }
+    
+        // Handle Custom Playlist Update
+        updatePlaylistBtn.addEventListener('click', () => {
+            const playlistId = playlistInput.value.trim();
+            if (playlistId) {
+                const extractedId = extractPlaylistId(playlistId);
+                if (extractedId) {
+                    loadCustomPlaylist(extractedId);
+                    // Save to storage
+                    if (typeof chrome !== "undefined" && chrome.storage?.local) {
+                        chrome.storage.local.set({ customPlaylistId: extractedId });
+                    }
+                    customPlaylistContainer.classList.add('has-playlist');
+                } else {
+                    alert("Please enter a valid Spotify playlist ID or URL");
+                }
+            }
+        });
+
+        function clearCustomPlaylist() {
+            customPlaylistContainer.classList.add('loading');
+        
+            // Animate closing
+            customPlaylistContainer.classList.remove('has-playlist');
+            customSpotifyPlayer.style.opacity = '0';
+            
+            setTimeout(() => {
+                customSpotifyPlayer.src = '';
+                playlistInput.value = '';
+
+                 // Hide player container
+                const playerContainer = document.querySelector('.player-container');
+                if (playerContainer) {
+                    playerContainer.style.display = 'none';
+                    playerContainer.style.opacity = '0';
+                    playerContainer.style.height = '0';
+                }
+        
+                // Reset player height and opacity
+                customSpotifyPlayer.style.height = '0';
+                customSpotifyPlayer.style.opacity = '0';
+
+                // Hide loader if visible
+                customSpotifyLoader.style.display = 'none';
+                
+                // Remove loading state
+                customPlaylistContainer.classList.remove('loading');
+                
+                // Reset container height
+                customPlaylistContainer.style.maxHeight = '120px';
+                removePlaylistBtn.style.display = 'none';
+            }, 300);
+            
+            // Remove from storage
+            if (typeof chrome !== "undefined" && chrome.storage?.local) {
+                chrome.storage.local.remove("customPlaylistId", () => {
+                    console.log('Playlist removed from storage');
+                });
+            }
+        }
+    
+        // Handle Remove Playlist
+        removePlaylistBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to remove this playlist?')) {
+                clearCustomPlaylist();
+            }
+        });
+    
+        // Initialize
+        loadTopHits();
+    
+        // Load saved custom playlist if exists
+        if (typeof chrome !== "undefined" && chrome.storage?.local) {
+            chrome.storage.local.get("customPlaylistId", (result) => {
+                if (result.customPlaylistId) {
+                    playlistInput.value = result.customPlaylistId;
+                    loadCustomPlaylist(result.customPlaylistId);
+                    customPlaylistContainer.classList.add('has-playlist');
+                }
+            });
+        }
     }
     
     // Add toggle view function
@@ -386,8 +552,10 @@ document.addEventListener("DOMContentLoaded", function () {
             chrome.storage.local.get("preferSpotify", (result) => {
                 if (result.preferSpotify) {
                     initSpotifyWidget();
+                    initializeCustomPlaylist();
                 }
             });
         }
     }, 0);
+
 });
