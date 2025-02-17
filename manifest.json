@@ -3,7 +3,7 @@
     "name": "Daily Quote",
     "description": "Quotes extension for Hinh",
     "version": "1.0",
-    "permissions": ["storage", "notifications", "alarms"],
+    "permissions": ["storage", "notifications", "alarms", "tabs", "sidePanel"],
     "host_permissions": ["https://open.spotify.com/*"],
     "icons": {
       "16": "icon16.png",
@@ -20,6 +20,9 @@
     },
     "background": {
       "service_worker": "background.js"
+    },
+    "side_panel": {
+      "default_path": "panel.html"
     }
   }
   

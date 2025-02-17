@@ -291,7 +291,16 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!isFirstTimeToday && currentMood) {
             fetchQuote();
         }
-    });
+    });  
+
+    function openSpotifyPlayer() {
+        chrome.windows.create({
+            url: chrome.runtime.getURL('player.html'),
+            type: 'popup',
+            width: 400,
+            height: 600
+        });
+    }
 
     function initSpotifyWidget() {
         const tabButtons = document.querySelectorAll('.tab-btn');
@@ -351,7 +360,6 @@ document.addEventListener("DOMContentLoaded", function () {
         function loadCustomPlaylist(playlistId) {
             customSpotifyLoader.style.display = 'block';
             customSpotifyPlayer.style.opacity = '0';
-
             customPlaylistContainer.classList.remove('has-playlist');
             
             // Short delay to ensure animation plays
